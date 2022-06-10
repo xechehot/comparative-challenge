@@ -52,6 +52,3 @@ class AvgPurchasedAmountPerPayingUserMetric(Metric):
     def calculate(self, data: DataFrame, group_by=None) -> MetricResult:
         filtered_data = data[data[self.field_name] > 0]
         return super().calculate(filtered_data, group_by)
-
-
-

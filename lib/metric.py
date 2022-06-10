@@ -35,7 +35,7 @@ class TotalPurchasedAmountMetric(Metric):
         return 'Total purchased amount'
 
     def _calculate(self, data: Union[DataFrame, DataFrameGroupBy]) -> MetricResult:
-        return data[self.field_name].sum()
+        return data[[self.field_name]].sum()
 
 
 class AvgPurchasedAmountPerPayingUserMetric(Metric):
@@ -47,7 +47,7 @@ class AvgPurchasedAmountPerPayingUserMetric(Metric):
         return 'Average purchased amount per paying user'
 
     def _calculate(self, data: Union[DataFrame, DataFrameGroupBy]) -> MetricResult:
-        return data[self.field_name].mean()
+        return data[[self.field_name]].mean()
 
     def calculate(self, data: DataFrame, group_by=None) -> MetricResult:
         filtered_data = data[data[self.field_name] > 0]

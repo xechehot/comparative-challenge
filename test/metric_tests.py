@@ -1,5 +1,6 @@
 import pytest
-from pandas import DataFrame
+from pandas import DataFrame, Series
+from pandas.testing import assert_frame_equal, assert_series_equal
 
 from lib.metric import TotalPurchasedAmountMetric, AvgPurchasedAmountPerPayingUserMetric
 
@@ -31,25 +32,28 @@ def default_data():
 def test_total_amount_metric(default_data):
     metric = TotalPurchasedAmountMetric('purchased_amount_yesterday')
     actual = metric.calculate(default_data)
-    expected = 52.5
-    assert actual == expected
+    expected = Series({'purchased_amount_yesterday': 52.5})
+    assert_series_equal(actual, expected)
 
 
 def test_total_amount_metric_with_group_by(default_data):
     metric = TotalPurchasedAmountMetric('purchased_amount_yesterday')
     actual = metric.calculate(default_data, ['country', 'is_vip'])
     print(actual)
+    actual_grouped = metric.calculate(actual, ['country'])
+    print(actual_grouped)
 #     TODO add expected value
 
 
 def test_avg_purchased_amount_per_paying_user_metric(default_data):
     metric = AvgPurchasedAmountPerPayingUserMetric('purchased_amount_yesterday')
     actual = metric.calculate(default_data)
-    expected = 8.75
-    assert actual == expected
+    expected = Series({'purchased_amount_yesterday': 8.75})
+    assert_series_equal(actual, expected)
 
 
 def test_avg_purchased_amount_per_paying_user_metric_with_group_by(default_data):
     metric = AvgPurchasedAmountPerPayingUserMetric('purchased_amount_yesterday')
     actual = metric.calculate(default_data, ['country', 'is_vip'])
     print(actual)
+#     TODO add expected value

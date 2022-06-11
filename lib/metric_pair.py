@@ -24,4 +24,9 @@ class MetricPair(Generic[MetricPairType]):
     def change_percentage(self):
         return self.change_value / self.yesterday
 
+    def __getitem__(self, item):
+        yesterday = self.yesterday[item]
+        today = self.today[item]
+        return MetricPair(yesterday, today)
+
 

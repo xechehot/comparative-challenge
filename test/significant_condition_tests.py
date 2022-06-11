@@ -55,10 +55,10 @@ def test_change_absolute_percentage_condition_int():
     overall = MetricPair(10, 12)
     print(overall.change_percentage)
 
-    significant_segment = MetricPair(1, 1.5)
+    significant_segment = MetricPair(1., 1.5)
     assert target_condition.is_satisfied(overall, significant_segment) is True
 
-    insignificant_segment = MetricPair(10, 12.1)
+    insignificant_segment = MetricPair(10., 12.1)
     print(insignificant_segment.change_percentage)
     assert target_condition.is_satisfied(overall, insignificant_segment) is False
 

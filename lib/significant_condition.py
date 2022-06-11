@@ -1,13 +1,15 @@
 from abc import ABC, abstractmethod
 from functools import reduce
-from typing import List
+from typing import List, Union
+
+from pandas import Series
 
 from lib.metric_pair import MetricPair
 
 
 class SignificantCondition(ABC):
     @abstractmethod
-    def is_satisfied(self, overall: MetricPair, segment: MetricPair):
+    def is_satisfied(self, overall: MetricPair, segment: MetricPair) -> Union[bool, Series]:
         pass
 
 

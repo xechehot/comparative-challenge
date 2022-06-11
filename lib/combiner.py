@@ -26,7 +26,7 @@ class MetricCombinerResult:
 
     def __str__(self):
         return f'{self.metric_name}: ${self.metric_pair.today:.2f} ' \
-               f'({self.change_direction} {self.change_percentage:.2f}% from yesterday)'
+               f'({self.change_direction} {self.change_percentage:.2f}% from yesterday {self.metric_pair.yesterday:.2f})'
 
 
 class MetricCombiner(object):
@@ -40,10 +40,17 @@ class MetricCombiner(object):
         return metric.calculate(data, group_by)
 
     def combine(self, data: DataFrame, dimension_fields: List[str]):
-        overalls = [pair.calculate(data, None) for pair in self.metric_pairs]
-        for dimensions in subslices(dimension_fields):
-            for overall, pair in zip(overalls, self.metric_pairs):
-                segment = pair.calculate(data, dimensions)
-                if self.significant_condition.is_satisfied(overall, segment):
-                    # TODO add to result here
-                    pass
+        result = []
+        for metric_pair in self.metric_pairs:
+            overall = metric_pair.calculate(data, None)
+            result.append(MetricCombinerResult(metric_pair.today.metric_name, overall))
+            for dimensions in subslices(dimension_fields):
+                segment = metric_pair.calculate(data, dimensions)
+                condition = self.significant_condition.is_satisfied(overall, segment)
+                satisfied_segments = segment[condition]
+                segments_result = DataFrame(dict(yesterday=satisfied_segments.yesterday,
+                                                 today=satisfied_segments.today))
+                for key, row in segments_result.iterrows():
+                    payload = MetricCombinerResult(key, MetricPair(row.yesterday, row.today))
+                    result.append(payload)
+        return result

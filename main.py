@@ -26,5 +26,6 @@ if __name__ == '__main__':
     combiner = MetricCombiner(metrics, significant_condition)
 
     data = pd.read_csv('data/users_data.csv')
-    result = combiner.combine(data, DIMENSIONS)
-    print(result)
+    metric_results = combiner.combine(data, DIMENSIONS)
+    for metric in metric_results:
+        print(metric)

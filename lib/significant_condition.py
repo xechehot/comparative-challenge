@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from functools import reduce
 from typing import List
 
 from lib.metric_pair import MetricPair
@@ -15,10 +16,8 @@ class AndSignificantCondition(SignificantCondition):
         self.conditions = conditions
 
     def is_satisfied(self, overall: MetricPair, segment: MetricPair):
-        for condition in self.conditions:
-            if not condition.is_satisfied(overall, segment):
-                return False
-        return True
+        conditions_result = map(lambda condition: condition.is_satisfied(overall, segment), self.conditions)
+        return reduce(lambda x, y: x & y, conditions_result)
 
 
 class ChangeAbsolutePercentageSignificantCondition(SignificantCondition):

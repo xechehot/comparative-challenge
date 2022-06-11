@@ -28,7 +28,6 @@ class ChangeAbsolutePercentageSignificantCondition(SignificantCondition):
 
     def is_satisfied(self, overall: MetricPair, segment: MetricPair):
         diff = abs(segment.change_percentage) - abs(overall.change_percentage)
-        # TODO Does we need to take abs from diff here?
         return diff > self.percentage
 
 

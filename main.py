@@ -35,7 +35,7 @@ def get_metrics():
 def get_significant_condition():
     absolute_percentage_condition = ChangeAbsolutePercentageSignificantCondition(CHANGE_ABSOLUTE_PERCENTAGE_THRESHOLD)
     absolute_value_condition = ChangeAbsoluteValueSignificantCondition(CHANGE_ABSOLUTE_VALUE_THRESHOLD)
-    return AndSignificantCondition([absolute_value_condition, absolute_percentage_condition])
+    return AndSignificantCondition([absolute_percentage_condition, absolute_value_condition])
 
 
 if __name__ == '__main__':

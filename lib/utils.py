@@ -10,4 +10,5 @@ def subslices(iterable):
     """
     seq = list(iterable)
     slices = starmap(slice, combinations(range(len(seq) + 1), 2))
-    return map(operator.getitem, repeat(seq), slices)
+
+    return map(lambda v, s: (s.start, v[s]), repeat(seq), slices)

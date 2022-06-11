@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import List
 
 from pandas import DataFrame
@@ -6,6 +7,26 @@ from lib.metric import Metric
 from lib.metric_pair import MetricPair
 from lib.significant_condition import SignificantCondition
 from lib.utils import subslices
+
+
+@dataclass
+class MetricCombinerResult:
+    metric_name: str
+    metric_pair: MetricPair
+
+    @property
+    def change_direction(self):
+        if self.metric_pair.today > self.metric_pair.yesterday:
+            return 'up'
+        return 'down'
+
+    @property
+    def change_percentage(self):
+        return abs(self.metric_pair.change_percentage) * 100
+
+    def __str__(self):
+        return f'{self.metric_name}: ${self.metric_pair.today:.2f} ' \
+               f'({self.change_direction} {self.change_percentage:.2f}% from yesterday)'
 
 
 class MetricCombiner(object):

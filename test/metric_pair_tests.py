@@ -95,7 +95,7 @@ def test_metric_pair_change_value_series_int(yesterday_series_result):
     assert_series_equal(pair.change_value, expected)
 
     pair = MetricPair(20., yesterday_series_result)
-    expected = get_series_result( [-10.0, -15.0, -16.0, -19.0], 'purchased_amount_yesterday')
+    expected = get_series_result([-10.0, -15.0, -16.0, -19.0], 'purchased_amount_yesterday')
     assert_series_equal(pair.change_value, expected)
 
 

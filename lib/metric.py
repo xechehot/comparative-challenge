@@ -1,13 +1,9 @@
 from abc import ABC, abstractmethod
-from pandas import DataFrame
-from dataclasses import dataclass
+from pandas import DataFrame, Series
 from typing import Union
 from pandas.core.groupby import DataFrameGroupBy
 
-
-@dataclass
-class MetricResult(object):
-    value: object
+MetricResult = Union[float, int, Series]
 
 
 class Metric(ABC):

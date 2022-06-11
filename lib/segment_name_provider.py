@@ -24,8 +24,14 @@ class UsersSegmentNameProvider(SegmentNameProvider):
 
 
 class CountrySegmentNameProvider(SegmentNameProvider):
-    def get_segment_name(self, segment_key: str) -> str:
-        return 'from ' + segment_key.capitalize()
+    @staticmethod
+    def normalize_country_name(country: str):
+        if country.lower() == 'usa':
+            return 'USA'
+        return country.capitalize()
+
+    def get_segment_name(self, country: str) -> str:
+        return 'from ' + self.normalize_country_name(country)
 
 
 class IsVipSegmentNameProvider(SegmentNameProvider):

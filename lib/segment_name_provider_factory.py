@@ -6,7 +6,7 @@ from lib.segment_name_provider import SegmentNameProvider, UsersSegmentNameProvi
 
 class SegmentNameProviderFactory(ABC):
     @abstractmethod
-    def get_segment_name_provider(self, dimensions: Iterable):
+    def get_segment_name_provider(self, dimensions: Iterable) -> SegmentNameProvider:
         pass
 
 

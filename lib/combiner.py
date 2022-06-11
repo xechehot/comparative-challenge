@@ -5,6 +5,7 @@ from pandas import DataFrame
 
 from lib.metric import Metric
 from lib.metric_pair import MetricPair
+from lib.segment_name_provider_factory import SegmentNameProviderFactory
 from lib.significant_condition import SignificantCondition
 from lib.utils import subslices
 
@@ -31,9 +32,11 @@ class MetricCombinerResult:
 
 class MetricCombiner(object):
     def __init__(self, metric_pairs: List[MetricPair],
-                 significant_condition: SignificantCondition):
+                 significant_condition: SignificantCondition,
+                 segment_names_provider_factory: SegmentNameProviderFactory):
         self.metric_pairs = metric_pairs
         self.significant_condition = significant_condition
+        self.segment_names_provider_factory = segment_names_provider_factory
 
     @staticmethod
     def _calculate_metric(data: DataFrame, metric: Metric, group_by=None):
@@ -45,12 +48,14 @@ class MetricCombiner(object):
             overall = metric_pair.calculate(data, None)
             result.append(MetricCombinerResult(metric_pair.today.metric_name, overall))
             for dimensions in subslices(dimension_fields):
+                segment_name_provider = self.segment_names_provider_factory.get_segment_name_provider(dimensions)
                 segment = metric_pair.calculate(data, dimensions)
                 condition = self.significant_condition.is_satisfied(overall, segment)
                 satisfied_segments = segment[condition]
                 segments_result = DataFrame(dict(yesterday=satisfied_segments.yesterday,
                                                  today=satisfied_segments.today))
                 for key, row in segments_result.iterrows():
-                    payload = MetricCombinerResult(key, MetricPair(row.yesterday, row.today))
+                    payload = MetricCombinerResult(segment_name_provider.get_segment_name(key),
+                                                   MetricPair(row.yesterday, row.today))
                     result.append(payload)
         return result

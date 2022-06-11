@@ -11,6 +11,7 @@ def test_country_segment_provider():
     provider = CountrySegmentNameProvider()
     assert provider.get_segment_name('canada') == 'from Canada'
     assert provider.get_segment_name('CANADA') == 'from Canada'
+    assert provider.get_segment_name('usa') == 'from USA'
 
 
 def test_users_country_segment_provider():

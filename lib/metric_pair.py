@@ -22,6 +22,6 @@ class MetricPair(Generic[MetricPairType]):
 
     @property
     def change_percentage(self):
-        return self.change_value() / self.yesterday
+        return self.change_value / self.yesterday
 
 

@@ -1,5 +1,5 @@
 import pytest
-from pandas import DataFrame, Series
+from pandas import DataFrame, Series, MultiIndex
 from pandas.testing import assert_frame_equal, assert_series_equal
 
 from lib.metric import TotalPurchasedAmountMetric, AvgPurchasedAmountPerPayingUserMetric
@@ -29,31 +29,43 @@ def default_data():
     return DataFrame.from_records(records)
 
 
+@pytest.fixture
+def expected_multi_index():
+    return MultiIndex.from_product([['Canada', 'Russia'], [False, True]],
+                                   names=['country', 'is_vip'])
+
+
 def test_total_amount_metric(default_data):
     metric = TotalPurchasedAmountMetric('purchased_amount_yesterday')
     actual = metric.calculate(default_data)
-    expected = Series({'purchased_amount_yesterday': 52.5})
-    assert_series_equal(actual, expected)
+    expected = 52.5
+    assert actual == expected
 
 
-def test_total_amount_metric_with_group_by(default_data):
+def test_total_amount_metric_with_group_by(default_data, expected_multi_index):
     metric = TotalPurchasedAmountMetric('purchased_amount_yesterday')
     actual = metric.calculate(default_data, ['country', 'is_vip'])
     print(actual)
-    actual_grouped = metric.calculate(actual, ['country'])
-    print(actual_grouped)
-#     TODO add expected value
+    assert type(actual) == Series
+    expected = Series([23., 23, 3, 3.5],
+                      index=expected_multi_index,
+                      name='purchased_amount_yesterday')
+    assert_series_equal(actual, expected)
 
 
 def test_avg_purchased_amount_per_paying_user_metric(default_data):
     metric = AvgPurchasedAmountPerPayingUserMetric('purchased_amount_yesterday')
     actual = metric.calculate(default_data)
-    expected = Series({'purchased_amount_yesterday': 8.75})
-    assert_series_equal(actual, expected)
+    expected = 8.75
+    assert actual == expected
 
 
-def test_avg_purchased_amount_per_paying_user_metric_with_group_by(default_data):
+def test_avg_purchased_amount_per_paying_user_metric_with_group_by(default_data, expected_multi_index):
     metric = AvgPurchasedAmountPerPayingUserMetric('purchased_amount_yesterday')
     actual = metric.calculate(default_data, ['country', 'is_vip'])
     print(actual)
-#     TODO add expected value
+    assert type(actual) == Series
+    expected = Series([11.5, 23.0, 1.5, 3.5],
+                      index=expected_multi_index,
+                      name='purchased_amount_yesterday')
+    assert_series_equal(actual, expected)

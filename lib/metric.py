@@ -16,6 +16,11 @@ class Metric(ABC):
     def metric_name(self) -> str:
         pass
 
+    @property
+    @abstractmethod
+    def metric_id(self) -> str:
+        pass
+
     @abstractmethod
     def _calculate(self, data: Union[DataFrame, DataFrameGroupBy]) -> MetricResult:
         pass
@@ -34,8 +39,12 @@ class TotalPurchasedAmountMetric(Metric):
     def metric_name(self) -> str:
         return 'Total purchased amount'
 
+    @property
+    def metric_id(self) -> str:
+        return 'total_purchased_amount'
+
     def _calculate(self, data: Union[DataFrame, DataFrameGroupBy]) -> MetricResult:
-        return data[[self.field_name]].sum()
+        return data[self.field_name].sum()
 
 
 class AvgPurchasedAmountPerPayingUserMetric(Metric):
@@ -46,8 +55,12 @@ class AvgPurchasedAmountPerPayingUserMetric(Metric):
     def metric_name(self) -> str:
         return 'Average purchased amount per paying user'
 
+    @property
+    def metric_id(self) -> str:
+        return 'avg_purchased_amount_per_paying_user'
+
     def _calculate(self, data: Union[DataFrame, DataFrameGroupBy]) -> MetricResult:
-        return data[[self.field_name]].mean()
+        return data[self.field_name].mean()
 
     def calculate(self, data: DataFrame, group_by=None) -> MetricResult:
         filtered_data = data[data[self.field_name] > 0]

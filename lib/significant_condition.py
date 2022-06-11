@@ -18,8 +18,8 @@ class AndSignificantCondition(SignificantCondition):
         self.conditions = conditions
 
     def is_satisfied(self, overall: MetricPair, segment: MetricPair):
-        conditions_result = map(lambda condition: condition.is_satisfied(overall, segment), self.conditions)
-        return reduce(lambda x, y: x & y, conditions_result)
+        mapped_conditions = (condition.is_satisfied(overall, segment) for condition in self.conditions)
+        return reduce(lambda x, y: x & y, mapped_conditions)
 
 
 class ChangeAbsolutePercentageSignificantCondition(SignificantCondition):

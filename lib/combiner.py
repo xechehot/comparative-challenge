@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from multiprocessing import Pool
 from typing import List, Tuple, Union
 
 from pandas import DataFrame
@@ -34,10 +35,12 @@ class MetricCombinerResult:
 class MetricCombiner(object):
     def __init__(self, metric_pairs: List[MetricPair],
                  significant_condition: SignificantCondition,
-                 segment_names_provider_factory: SegmentNameProviderFactory):
+                 segment_names_provider_factory: SegmentNameProviderFactory,
+                 n_cores: int):
         self.metric_pairs = metric_pairs
         self.significant_condition = significant_condition
         self.segment_names_provider_factory = segment_names_provider_factory
+        self.n_cores = n_cores
 
     @staticmethod
     def _calculate_metric(data: DataFrame, metric: Metric, group_by=None):
@@ -51,6 +54,31 @@ class MetricCombiner(object):
             key_tuple = key
         return (i,) + key_tuple
 
+    def parallel_combine(self, data: DataFrame, dimension_fields: List[str]):
+        result: List[MetricCombinerResult] = []
+        with Pool(self.n_cores) as pool:
+            tasks = []
+            for metric_pair in self.metric_pairs:
+                args = [metric_pair, data, dimension_fields]
+                tasks.append(args)
+            payloads = pool.map(self.process_metric, tasks)
+            for p in payloads:
+                result += p
+        return result
+
+    def process_metric(self, args):
+        metric_pair, data, dimension_fields = args
+        result = []
+        overall = metric_pair.calculate(data, None)
+        result.append(MetricCombinerResult(metric_pair.today.metric_name, overall, [metric_pair.today.metric_id]))
+        dimensions_result: List[MetricCombinerResult] = []
+        for i, dimensions in subslices(dimension_fields):
+            for payload in self.process_segment([metric_pair, data, dimensions, i, overall]):
+                dimensions_result.append(payload)
+        dimensions_result.sort(key=lambda x: x.index)
+        result += dimensions_result
+        return result
+
     def combine(self, data: DataFrame, dimension_fields: List[str]):
         result: List[MetricCombinerResult] = []
         for metric_pair in self.metric_pairs:
@@ -58,12 +86,16 @@ class MetricCombiner(object):
             result.append(MetricCombinerResult(metric_pair.today.metric_name, overall, [metric_pair.today.metric_id]))
             dimensions_result: List[MetricCombinerResult] = []
             for i, dimensions in subslices(dimension_fields):
-                significant_segments = self.get_significant_segments(metric_pair, data, dimensions, overall)
-                for payload in self.get_segment_results(significant_segments, dimensions, i):
+                for payload in self.process_segment([metric_pair, data, dimensions, i, overall]):
                     dimensions_result.append(payload)
             dimensions_result.sort(key=lambda x: x.index)
             result += dimensions_result
         return result
+
+    def process_segment(self, args):
+        metric_pair, data, dimensions, i, overall = args
+        significant_segments = self.get_significant_segments(metric_pair, data, dimensions, overall)
+        return list(self.get_segment_results(significant_segments, dimensions, i))
 
     def get_segment_results(self, significant_segments, dimensions, i):
         segment_name_provider = self.segment_names_provider_factory.get_segment_name_provider(dimensions)

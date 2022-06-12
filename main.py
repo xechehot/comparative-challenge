@@ -1,4 +1,5 @@
 import argparse
+import time
 from typing import List
 
 import pandas as pd
@@ -11,6 +12,7 @@ from lib.segment_name_provider_factory import UsersSegmentNameProviderFactory, S
 from lib.significant_condition import AndSignificantCondition, ChangeAbsolutePercentageSignificantCondition, \
     ChangeAbsoluteValueSignificantCondition, SignificantCondition
 
+N_CORES = 2
 CHANGE_ABSOLUTE_PERCENTAGE_THRESHOLD = 0.02
 CHANGE_ABSOLUTE_VALUE_THRESHOLD = 0.02
 
@@ -45,11 +47,19 @@ def main(path):
     significant_condition = get_significant_condition()
     metrics = get_metrics()
     users_segment_name_provider_factory = get_segment_name_provider_factory()
-    combiner = MetricCombiner(metrics, significant_condition, users_segment_name_provider_factory)
-    data = pd.read_csv(path)
-    metric_results = combiner.combine(data, DIMENSIONS)
-    for metric in metric_results:
-        print(metric)
+    combiner = MetricCombiner(metrics, significant_condition, users_segment_name_provider_factory, N_CORES)
+    raw_data = pd.read_csv(path)
+    for size in [1, 10, 100, 1000, 2000]:
+        data = pd.concat(raw_data.sample(frac=1) for _ in range(size))
+        print('Size is %s' % len(data))
+        start_time = time.time()
+        metric_results = combiner.combine(data, DIMENSIONS)
+        print(" combine: %s seconds" % (time.time() - start_time))
+        start_time = time.time()
+        metric_results = combiner.parallel_combine(data, DIMENSIONS)
+        print(" parallel_combine: %s seconds" % (time.time() - start_time))
+    # for metric in metric_results:
+    #     print(metric)
 
 
 if __name__ == '__main__':

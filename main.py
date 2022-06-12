@@ -1,3 +1,4 @@
+import argparse
 from typing import List
 
 import pandas as pd
@@ -40,13 +41,22 @@ def get_significant_condition() -> SignificantCondition:
     return AndSignificantCondition([absolute_percentage_condition, absolute_value_condition])
 
 
-if __name__ == '__main__':
+def main(path):
     significant_condition = get_significant_condition()
     metrics = get_metrics()
     users_segment_name_provider_factory = get_segment_name_provider_factory()
     combiner = MetricCombiner(metrics, significant_condition, users_segment_name_provider_factory)
-
-    data = pd.read_csv('data/users_data.csv')
+    data = pd.read_csv(path)
     metric_results = combiner.combine(data, DIMENSIONS)
     for metric in metric_results:
         print(metric)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Print our all significant segments by given users data')
+    parser.add_argument('--path',
+                        help='Path to a csv-file with users data',
+                        default='data/users_data.csv')
+    args = parser.parse_args()
+
+    main(args.path)

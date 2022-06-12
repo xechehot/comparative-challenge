@@ -58,17 +58,24 @@ class MetricCombiner(object):
             result.append(MetricCombinerResult(metric_pair.today.metric_name, overall, [metric_pair.today.metric_id]))
             dimensions_result: List[MetricCombinerResult] = []
             for i, dimensions in subslices(dimension_fields):
-                segment_name_provider = self.segment_names_provider_factory.get_segment_name_provider(dimensions)
-                segment = metric_pair.calculate(data, dimensions)
-                condition = self.significant_condition.is_satisfied(overall, segment)
-                satisfied_segments = segment[condition]
-                segments_result = DataFrame(dict(yesterday=satisfied_segments.yesterday,
-                                                 today=satisfied_segments.today))
-                for key, row in segments_result.iterrows():
-                    payload = MetricCombinerResult(segment_name_provider.get_segment_name(key),
-                                                   MetricPair(row.yesterday, row.today),
-                                                   self.get_index(key, i))
+                significant_segments = self.get_significant_segments(metric_pair, data, dimensions, overall)
+                for payload in self.get_segment_results(significant_segments, dimensions, i):
                     dimensions_result.append(payload)
             dimensions_result.sort(key=lambda x: x.index)
             result += dimensions_result
         return result
+
+    def get_segment_results(self, significant_segments, dimensions, i):
+        segment_name_provider = self.segment_names_provider_factory.get_segment_name_provider(dimensions)
+        for key, row in significant_segments.iterrows():
+            payload = MetricCombinerResult(segment_name_provider.get_segment_name(key),
+                                           MetricPair(row.yesterday, row.today),
+                                           self.get_index(key, i))
+            yield payload
+
+    def get_significant_segments(self, metric_pair, data, dimensions, overall):
+        segment = metric_pair.calculate(data, dimensions)
+        condition = self.significant_condition.is_satisfied(overall, segment)
+        satisfied_segments = segment[condition]
+        return DataFrame(dict(yesterday=satisfied_segments.yesterday,
+                              today=satisfied_segments.today))

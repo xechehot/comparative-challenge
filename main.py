@@ -1,12 +1,14 @@
+from typing import List
+
 import pandas as pd
 
 from lib.combiner import MetricCombiner
-from lib.metric import TotalPurchasedAmountMetric, AvgPurchasedAmountPerPayingUserMetric, Metric
+from lib.metric import TotalPurchasedAmountMetric, AvgPurchasedAmountPerPayingUserMetric
 from lib.metric_pair import MetricPair
 from lib.segment_name_provider import CountrySegmentNameProvider, IsVipSegmentNameProvider
-from lib.segment_name_provider_factory import UsersSegmentNameProviderFactory
+from lib.segment_name_provider_factory import UsersSegmentNameProviderFactory, SegmentNameProviderFactory
 from lib.significant_condition import AndSignificantCondition, ChangeAbsolutePercentageSignificantCondition, \
-    ChangeAbsoluteValueSignificantCondition
+    ChangeAbsoluteValueSignificantCondition, SignificantCondition
 
 CHANGE_ABSOLUTE_PERCENTAGE_THRESHOLD = 0.02
 CHANGE_ABSOLUTE_VALUE_THRESHOLD = 0.02
@@ -16,7 +18,7 @@ TODAY_FIELD = 'purchased_amount_today'
 DIMENSIONS = ['country', 'is_vip']
 
 
-def get_segment_name_provider_factory():
+def get_segment_name_provider_factory() -> SegmentNameProviderFactory:
     segment_name_provider_map = {
         'country': CountrySegmentNameProvider(),
         'is_vip': IsVipSegmentNameProvider()
@@ -24,7 +26,7 @@ def get_segment_name_provider_factory():
     return UsersSegmentNameProviderFactory(segment_name_provider_map)
 
 
-def get_metrics():
+def get_metrics() -> List[MetricPair]:
     total_purchase_amount = MetricPair(TotalPurchasedAmountMetric(YESTERDAY_FIELD),
                                        TotalPurchasedAmountMetric(TODAY_FIELD))
     avg_purchased_amount_per_paying_user = MetricPair(AvgPurchasedAmountPerPayingUserMetric(YESTERDAY_FIELD),
@@ -32,7 +34,7 @@ def get_metrics():
     return [total_purchase_amount, avg_purchased_amount_per_paying_user]
 
 
-def get_significant_condition():
+def get_significant_condition() -> SignificantCondition:
     absolute_percentage_condition = ChangeAbsolutePercentageSignificantCondition(CHANGE_ABSOLUTE_PERCENTAGE_THRESHOLD)
     absolute_value_condition = ChangeAbsoluteValueSignificantCondition(CHANGE_ABSOLUTE_VALUE_THRESHOLD)
     return AndSignificantCondition([absolute_percentage_condition, absolute_value_condition])
